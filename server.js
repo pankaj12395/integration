@@ -1,0 +1,70 @@
+const express = require("express");
+const connectDB = require("./database");
+const cors = require("cors");
+const UserModel = require("./model");
+
+connectDB();
+const app = express();
+
+app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  }),
+);
+
+// api
+
+app.post("/register", async (req, res) => {
+  try {
+    let { fullName, email, password, mobile, address } = req.body;
+
+    if (!fullName || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    let newUser = await UserModel.create({
+      fullName,
+      email,
+      password,
+      address,
+      mobile,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User registered",
+      data: newUser,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+app.get("/users", async (req, res) => {
+  try {
+    let users = await UserModel.find();
+
+    return res.status(200).json({
+      message: "Users fetched",
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+app.listen(3000, () => {
+  console.log("server is running on port 3000");
+});
